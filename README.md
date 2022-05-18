@@ -9,4 +9,4 @@ It resaves the file as a .crypt file and consists of the initial vector and spac
 Make sure you install the glimmer-dsl-libui gem by running "gem install glimmer-dsl-libui" or "sudo gem install glimmer-dsl-libui" in your terminal window.
 If that is done, it is compatible with both Windows and Linux.
 
-Enjoy!
+Enjoy! 
