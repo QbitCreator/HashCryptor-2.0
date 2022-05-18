@@ -1,18 +1,3 @@
-def gem_installed?(gem_name)
-  found_gem = false
-  begin
-    found_gem = Gem::Specification.find_by_name(gem_name)
-  rescue Gem::LoadError
-     return false
-  else
-    return true
-  end
-end
-
-if not gem_installed?('glimmer-dsl-libui')
-	puts("Run 'gem install glimmer-dsl-libui' or 'sudo gem install glimmer-dsl-libui' first!")
-end
-
 require 'glimmer-dsl-libui'
 require 'thread'
 include Glimmer
@@ -348,6 +333,7 @@ window('H4shCrypt0r', 700, 900) {
 					end
 				end
 			}	
+			
 			@cleartext=multiline_entry{}
 
 			@encryptedited=button("Open a file in edit mode first!") {
