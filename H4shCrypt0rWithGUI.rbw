@@ -22,7 +22,7 @@ include Glimmer
 @cachedpassword=""
 
 def eckisHashAlg(input)
-	hashsize=128	
+	hashsize=64	
 	def sqmul(a, g ,p)
 		cache=g
 		a.chars.each_with_index do |x, i|
