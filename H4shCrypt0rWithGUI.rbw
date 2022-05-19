@@ -1,3 +1,18 @@
+def gem_installed?(gem_name)
+  found_gem = false
+  begin
+    found_gem = Gem::Specification.find_by_name(gem_name)
+  rescue Gem::LoadError
+     return false
+  else
+    return true
+  end
+end
+
+if not gem_installed?('glimmer-dsl-libui')
+	puts("Run 'gem install glimmer-dsl-libui' or 'sudo gem install glimmer-dsl-libui' first!")
+end
+
 require 'glimmer-dsl-libui'
 require 'thread'
 include Glimmer
@@ -7,7 +22,7 @@ include Glimmer
 @cachedpassword=""
 
 def eckisHashAlg(input)
-	hashsize=64 	
+	hashsize=128	
 	def sqmul(a, g ,p)
 		cache=g
 		a.chars.each_with_index do |x, i|
@@ -89,21 +104,18 @@ def encrypt(password, filename, data)
 	layers=Math.log(size, 64).ceil-0
 	@steps=layers+4
 	
-	hashlist=hashlist(password, layers)
-	iv=""
+	salt=""
 	64.times do
-		iv+=rand(48..126).chr
+		salt+=rand(48..126).chr
 	end
-	ivhashlist=hashlist(iv, layers)
+	hashlist=hashlist(password+salt, layers)
 
 	@progress+=1
 	@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
 	@progresstext.text="Encrypting base layer..."
 	basehashbytes=eckisHashAlg(hashlist[hashlist.size-1]).bytes
-	baseivhashbytes=eckisHashAlg(ivhashlist[ivhashlist.size-1]).bytes
 	data.each_with_index do |current, n|
 		data[n]=(current+(basehashbytes)[n%64])%255
-		data[n]=(data[n]+(baseivhashbytes)[n%64])%255
 	end
 
 	hashlist.each_with_index do |x, i|
@@ -125,8 +137,6 @@ def encrypt(password, filename, data)
 			current.each_with_index do |character, m|
 				datablockscache[n][m]=(character+(x.bytes)[n%64])%255
 				datablockscache[n][m]=(datablockscache[n][m]+(hashlist[(i+1)%hashlist.size].bytes)[n%64])%255
-				datablockscache[n][m]=(datablockscache[n][m]+(ivhashlist[i].bytes)[n%64])%255
-				datablockscache[n][m]=(datablockscache[n][m]+(ivhashlist[(i+1)%ivhashlist.size].bytes)[n%64])%255
 			end
 		end
 		datablockscache.flatten!
@@ -136,7 +146,7 @@ def encrypt(password, filename, data)
 	@progress+=1
 	@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
 	@progresstext.text="Collecting data..."
-	result=iv+" "
+	result=salt+" "
 	data.each do |x|
 		result+=x.to_s
 		result+=" "
@@ -154,7 +164,7 @@ end
 def decrypt(password, filename, mode)
 	data=IO.read(filename)
 	data=data.split(" ")
-	iv=data.shift
+	salt=data.shift
 	data=data.map(&:to_i)
 	size=data.length
 	
@@ -163,9 +173,7 @@ def decrypt(password, filename, mode)
 	layers=Math.log(size, 64).ceil-0
 	@steps=layers+3+mode
 
-	hashlist=hashlist(password, layers)
-	ivhashlist=hashlist(iv, layers)
-	ivhashlist=ivhashlist.reverse
+	hashlist=hashlist(password+salt, layers)
 	hashlist=hashlist.reverse
 
 	hashlist.each_with_index do |x, i|
@@ -189,10 +197,6 @@ def decrypt(password, filename, mode)
 				if datablockscache[n][m].negative?()	
 					datablockscache[n][m]=255+datablockscache[n][m]
 				end
-				datablockscache[n][m]=datablockscache[n][m]-(ivhashlist[i].bytes)[n%64]-(ivhashlist[(i+ivhashlist.size-1)%hashlist.size].bytes)[n%64]
-				if datablockscache[n][m].negative?()	
-					datablockscache[n][m]=255+datablockscache[n][m]
-				end
 			end
 		end
 		datablockscache.flatten!
@@ -203,13 +207,8 @@ def decrypt(password, filename, mode)
 	@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
 	@progresstext.text="Decrypting base layer..."
 	basehashbytes=eckisHashAlg(hashlist[0]).bytes
-	baseivhashbytes=eckisHashAlg(ivhashlist[0]).bytes
 	data.each_with_index do |current, n|
 		data[n]=current-(basehashbytes)[n%64]
-		if data[n].negative?()
-			data[n]=255+data[n]
-		end
-		data[n]=data[n]-baseivhashbytes[n%64]
 		if data[n].negative?()
 			data[n]=255+data[n]
 		end
@@ -333,7 +332,6 @@ window('H4shCrypt0r', 700, 900) {
 					end
 				end
 			}	
-			
 			@cleartext=multiline_entry{}
 
 			@encryptedited=button("Open a file in edit mode first!") {
