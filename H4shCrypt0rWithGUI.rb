@@ -20,6 +20,7 @@ include Glimmer
 @runcheck=0
 @cachedfilename=""
 @cachedpassword=""
+@editmode=0
 
 def eckisHashAlg(input)
 	hashsize=64
@@ -160,7 +161,11 @@ def encrypt(password, filename, data)
 	IO.write(filename, result, mode: "w")
 	@progress+=1
 	@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round	
-	@progresstext.text="Finished!"
+	if @editmode==0
+		@progresstext.text="Successfully encrypted '#{@filename}'!"
+	elsif @editmode==1
+		@progresstext.text="Successfully wrote edited contents to '#{@filename}'!"
+	end
 	@runcheck=0
 end
 
@@ -236,9 +241,8 @@ def decrypt(password, filename, mode)
 		if mode==0
 			@progress+=1
 			@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
-			@progresstext.text="Finished!"
+			@progresstext.text="Succesfully opened '#{@filename}' to edit in ShadowMode!"
 			@cleartext.text=result
-
 		elsif mode==1
 			@progress+=1
 			@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
@@ -247,7 +251,7 @@ def decrypt(password, filename, mode)
 			File.rename(filename,  filename.chomp(File.extname(filename)))
 			@progress+=1
 			@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
-			@progresstext.text="Finished!"
+			@progresstext.text="Succesfully decrypted '#{@filename}'!"
 		end
 	else
 		@progresstext.text="ERROR: Wrong password!"
@@ -281,7 +285,7 @@ window('H4shCrypt0r', 700, 900) {
 			group('Mode: '){
 				stretchy false
 				radio_buttons {
-              				items "Encrypt", "Decrypt", "Edit in ShadowMode" # also accepts a single array argument
+              				items "Encrypt", "Decrypt", "Edit in ShadowMode" 
               				on_selected do |c|
                 				@mode=c.selected
               				end
@@ -351,19 +355,17 @@ window('H4shCrypt0r', 700, 900) {
 						@progresstext.text="Open a file in edit mode first!"		
 					elsif not File.file?(@cachedfilename) 
 						@progresstext.text="The file '#{@cachedfilename}' does not exist!"
-					elsif @mode==nil
-						@progresstext.text="Select a mode first!"
 					elsif (File.extname(@cachedfilename)!=".crypt") && @mode>0
 						@progresstext.text="File '#{@cachedfilename}' is not encrypted! Make sure you have selected the correct file!"
 					else			
 						if @runcheck==0
-							if @mode==2
-								@runcheck=1
-								Thread.new do
-									@progress_bar.value=0
-									@progresstext.text="Starting..."
-									encrypt(@cachedpassword, @cachedfilename.to_s, @cleartext.text)
-								end
+							@runcheck=1
+							@editmode=1
+							Thread.new do
+								@progress_bar.value=0
+								@progresstext.text="Starting..."
+								encrypt(@cachedpassword, @cachedfilename.to_s, @cleartext.text)
+								@editmode=0
 							end
 						end
 					end
