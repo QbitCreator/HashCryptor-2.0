@@ -22,7 +22,7 @@ include Glimmer
 @cachedpassword=""
 
 def eckisHashAlg(input)
-	hashsize=64	
+	hashsize=64
 	def sqmul(a, g ,p)
 		cache=g
 		a.chars.each_with_index do |x, i|
@@ -148,8 +148,11 @@ def encrypt(password, filename, data)
 	@progresstext.text="Collecting data..."
 	result=salt+" "
 	data.each do |x|
-		result+=x.to_s
-		result+=" "
+		cryptchar=x.to_s(16)
+		if cryptchar.length==1
+			cryptchar="0"+cryptchar
+		end
+		result+=cryptchar
 	end
 	@progress+=1
 	@progress_bar.value=(@progress.to_f/@steps.to_f*100.to_f).round
@@ -165,7 +168,10 @@ def decrypt(password, filename, mode)
 	data=IO.read(filename)
 	data=data.split(" ")
 	salt=data.shift
-	data=data.map(&:to_i)
+	data=data.first.scan(/../)
+	data.each_with_index do |d,i|
+		data[i]=d.to_i(16)
+	end
 	size=data.length
 	
 	@progress=0
