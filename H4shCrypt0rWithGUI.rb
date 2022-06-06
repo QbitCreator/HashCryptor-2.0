@@ -260,7 +260,7 @@ def decrypt(password, filename, mode)
 	@runcheck=0
 end
 			
-window('H4shCrypt0r', 700, 900) {
+window('H4shCrypt0r', 800, 700) {
 	margined true
 	group('H4shCrypt0r for ASCII-encoded files by Leif-Erik Hallmann') {
 		
