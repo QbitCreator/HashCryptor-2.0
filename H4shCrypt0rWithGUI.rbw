@@ -291,7 +291,7 @@ window('H4shCrypt0r', 800, 700) {
 					elsif @mode==nil
 						@progresstext.text="ERROR: Select a mode first!"
 					elsif (not (File.read(@filename).ascii_only?)) && @mode==0
-						@progresstext.text="ERROR: File '#{@filename}' contents are out of the ASCII-Range!"
+						@progresstext.text="ERROR: File '#{@filename}' contents are out of the ASCII-range!"
 					elsif (File.extname(@filename)!=".crypt") && @mode>0
 						@progresstext.text="ERROR: File '#{@filename}' is not encrypted!"
 					elsif IO.read(@filename).length < 2
@@ -346,6 +346,8 @@ window('H4shCrypt0r', 800, 700) {
 						@progresstext.text="File '#{@cachedfilename}' is not encrypted! Make sure you have selected the correct file!"
 					elsif @cleartext.text.length < 2
 						@progresstext.text="ERROR: Edit field contains less than two characters! Write at least two random characters into the edit field."
+					elsif not @cleartext.text.ascii_only?
+						@progresstext.text="ERROR: Edit field contains characters out of the ASCII-range!"
 					else			
 						if @runcheck==0
 							@runcheck=1
