@@ -306,9 +306,11 @@ window('H4shCrypt0r', 800, 700) {
 					elsif @mode==nil
 						@progresstext.text="ERROR: Select a mode first!"
 					elsif (not (File.read(@filename).ascii_only?)) && @mode==0
-						@progresstext.text="ERROR: File '#{@filename}' contents are out of the ASCII-Range!"
+						@progresstext.text="ERROR: File '#{@filename}' contents are out of the ASCII-range!"
 					elsif (File.extname(@filename)!=".crypt") && @mode>0
 						@progresstext.text="ERROR: File '#{@filename}' is not encrypted!"
+					elsif IO.read(@filename).length < 2
+						@progresstext.text="ERROR: File '#{@filename}' contains less than two characters! Write at least two random characters into the file first."
 					else			
 						if @runcheck==0
 							if @mode==0
@@ -344,19 +346,23 @@ window('H4shCrypt0r', 800, 700) {
 			}	
 			@cleartext=multiline_entry{}
 
-			@encryptedited=button("Open a file in edit mode first!") {
+			@encryptedited=button("Open a file in ShadowMode first!") {
 				stretchy false	
 				on_clicked do
 					if @cachedfilename=="" && @cachedpassword==""
-						@progresstext.text="Open a file in edit mode first!"
+						@progresstext.text="Open a file in ShadowMode first!"
 					elsif @cachedfilename==""
-						@progresstext.text="Open a file in edit mode first!"
+						@progresstext.text="Open a file in ShadowMode first!"
 					elsif @cachedpassword==""	
-						@progresstext.text="Open a file in edit mode first!"		
+						@progresstext.text="Open a file in ShadowMode first!"		
 					elsif not File.file?(@cachedfilename) 
 						@progresstext.text="The file '#{@cachedfilename}' does not exist!"
 					elsif (File.extname(@cachedfilename)!=".crypt") && @mode>0
 						@progresstext.text="File '#{@cachedfilename}' is not encrypted! Make sure you have selected the correct file!"
+					elsif @cleartext.text.length < 2
+						@progresstext.text="ERROR: Edit field contains less than two characters! Write at least two random characters into the edit field."
+					elsif not @cleartext.text.ascii_only?
+						@progresstext.text="ERROR: Edit field contains characters out of the ASCII-range!"
 					else			
 						if @runcheck==0
 							@runcheck=1
@@ -374,5 +380,4 @@ window('H4shCrypt0r', 800, 700) {
 		}
 	}
 }.show
-
 
